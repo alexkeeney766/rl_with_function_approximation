@@ -4,7 +4,7 @@ import os
 import gym
 import numpy as np
 
-from sarsa_agent import SarsaAgent
+from agents.sarsa_agent import SarsaAgent
 
 try:
     from IPython.display import clear_output

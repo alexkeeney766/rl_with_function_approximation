@@ -6,7 +6,7 @@ import numpy as np
 from multiprocessing.pool import Pool
 from gym_runner import GymRunner
 from q_func_approx import QualityFuncApprox
-from sarsa_agent import SarsaAgent
+from agents.sarsa_agent import SarsaAgent
 
 
 class GridSearch:

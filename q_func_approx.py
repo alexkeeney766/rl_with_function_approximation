@@ -13,11 +13,11 @@ class QualityFuncApprox(torch.nn.Module):
         loss_func: str = "l1",
         alpha: float = 0.001,
     ):
-        '''
+        """
         Initialize a neural network that approximates a Q-function
         of a reinforcement learning agent. Should be used with SARSA,
         on policy agents.
-        '''
+        """
         super(QualityFuncApprox, self).__init__()
 
         # The layers of a network that maps from states to quality
@@ -38,12 +38,12 @@ class QualityFuncApprox(torch.nn.Module):
         }[loss_func]
 
     def forward(self, state: torch.Tensor) -> torch.Tensor:
-        '''Computes the quality of each action given a current state s'''
+        """Computes the quality of each action given a current state s"""
         x = torch.tanh(self.fc1(state))
         return torch.relu(self.fc2(x))
 
     def update(self, x: torch.Tensor, target: torch.Tensor) -> None:
-        '''Updates the network given a '''
+        """Updates the network given a """
         loss = self.loss_func(x, target)
         self.optimizer.zero_grad()
         loss.backward()
