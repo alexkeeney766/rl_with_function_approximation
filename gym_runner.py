@@ -23,16 +23,16 @@ class GymRunner:
     def __init__(
         self,
         env_id: str,
-        display: bool = False,
+        display_metrics: bool = False,
         max_steps: int = 200000,
         num_episodes: int = 1000,
     ):
         self.num_episodes: int = num_episodes
         self.max_steps = max_steps
-        self.display = display
+        self.display_metrics = display_metrics
         self.env = gym.make(env_id)
 
-    def train(self, agent: SarsaAgent, num_episodes: int, plot_func=None) -> np.array:
+    def train(self, agent: SarsaAgent, num_episodes: int, plot_state:bool=False) -> np.array:
         '''
         Train an agent on the current environment.
         '''
@@ -40,41 +40,39 @@ class GymRunner:
         accumulated_rewards = []
         
         for i, episode in enumerate(range(num_episodes)):
-            # Init S and clear gradients from pervious step
+            # Init S
             state = self.env.reset()
             accumulated_reward = 0
 
-            # Get initial Action
-            action, quality = agent.choose_action(state)
+            # Initialize agent-specific training
+            agent.init_training_episode(state)
 
-            # Loop for each step of unknown length
+            # Loop for each step in episode:
             for _ in range(self.max_steps):
+                
+                # Agent Specific pre-step training process
+                agent.init_training_step(state)
 
-                if plot_func is not None:
-                    plot_func()
+                if plot_state:
+                    self.env.render()
 
-                # Take Action A, observe next state, reward and meta-data
-                s_prime, r, terminal, _ = self.env.step(action)
+                # Take Action A, observe reward R, next state S'
+                s_prime, r, terminal, _ = self.env.step(agent.action)
                 accumulated_reward += r
 
                 if terminal:
                     accumulated_rewards.append(accumulated_reward)
                     agent.update_epsilon()
                     break
+                
+                # Agent Specific post-step training process
+                agent.train_step(s_prime, r)
 
-                # Find max_a of new state S'
-                a_prime, q_prime = agent.epsilon_greedy(s_prime)
-
-                # Update Weights
-                agent.update(quality, action, r, q_prime)
-
-                # Update current state and action
-                state = s_prime
-                action = a_prime
-                quality = agent.get_quality(state)
+            # Agent Specific post-episode training process, E.G. Memory Replay
+            agent.episode_aggregation_func()
 
             # Intermediate output
-            if i % 10 == 0 and self.display:
+            if i % 10 == 0 and self.display_metrics:
                 os.system("clear")
                 clear_output()
                 print("Epsilon: ", agent.epsilon)
@@ -84,7 +82,7 @@ class GymRunner:
         
         return accumulated_rewards
         
-    def attempt(self, agent: SarsaAgent, num_episodes: int, plot_func=None) -> np.array:
+    def attempt(self, agent: SarsaAgent, num_episodes: int, plot_state:bool=False) -> np.array:
         '''
         Attempt the environment using the passed agent.
         '''
@@ -104,10 +102,10 @@ class GymRunner:
             # Loop for each step until terminal or maximum is reached
             for _ in range(self.max_steps):
                 
-                if plot_func is not None:
-                    plot_func()
+                if plot_state:
+                    self.env.render()
                 
-                ## Take action A, observe R, S', adn meta-data
+                # Take action A, observe R, S', adn meta-data
                 s_prime, r, terminal, _ = self.env.step(action)
                 accumulated_reward += r
 
@@ -123,5 +121,5 @@ class GymRunner:
                 state = s_prime
                 action = a_prime
             
-            return np.array(accumulated_rewards)
+        return np.array(accumulated_rewards)
                 
