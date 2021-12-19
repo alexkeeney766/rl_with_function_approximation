@@ -7,7 +7,7 @@ from q_func_approx import QualityFuncApprox
 from .agent import Agent
 
 
-class SarsaAgent(Agent):
+class QLearningAgent(Agent):
     def __init__(
         self,
         q_func_approx: QualityFuncApprox,
@@ -25,16 +25,15 @@ class SarsaAgent(Agent):
         Algorithm:
         Loop for each episode:
             Init State S
-            Choose Action A based on S, using current policy w/ exploration
 
             Loop for each step in episode:
+                Choose Action A based on S, using current policy w/ exploration
                 Take Action A, observe reward R, next state S'
-                Choose Action A' based on S' using current policy w/ exploration
+                Choose action A' based on S', using current greedy policy
                 Calculate target to be: R + gamma * Q(S', A')
-                
-                Update Q Function based on difference between target and current Q(S,A)
-                S, A <- S', A'
 
+                Update Q Function based on difference between target and current Q(S,A)
+                S <- S'
         """
 
         # Setting instance Vars
@@ -46,28 +45,23 @@ class SarsaAgent(Agent):
         self.epsilon_decay: float = epsilon_decay
         self.gamma: float = gamma
         self.eps_min: float = 0.1
+        self.current_q_prime: float = 0.0
 
     def init_training_episode(self, state: np.array) -> None:
-        # Get Initial Action
-        self.action, self.q = self.choose_action(state)
-
-    def init_training_step(self, state: np.array) -> None:
         pass
 
-    def train_step(self, s_prime: np.array, reward: int) -> None:
+    def init_training_step(self, state: np.array) -> None:
+        self.action, self.q = self.epsilon_greedy(state)
 
-        # Choose Action A' based on S' using current policy w/ exploration
-        a_prime, q_prime = self.epsilon_greedy(s_prime)
+    def train_step(self, s_prime: np.array, reward: int) -> None:
+        # Choose action A' based on S', using current greedy policy
+        a_prime, q_prime = self.choose_action(s_prime)
 
         # Update Weights
         self.update(reward, q_prime)
 
-        # Update current state and action
-        state = s_prime
-        self.action = a_prime
-
-        # Need to recompute avoid gradient issues after updateing
-        self.q = self.get_quality(state)
+        # Update current state
+        self.state = s_prime
 
     def update(self, reward: float, q_prime: float) -> None:
         """
@@ -78,9 +72,9 @@ class SarsaAgent(Agent):
         q-value of the observed state-action pair updated.
         """
         # Calculate target to be: R + gamma * Q(S', A')
-        updated_val = reward + self.gamma * q_prime.detach().clone()[self.action] 
+        updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
 
-        # We only want to update one Q value 
+        # We only want to update one Q value
         target = self.copy_and_update(self.q, self.action, updated_val)
 
         # Run backprop
@@ -88,3 +82,4 @@ class SarsaAgent(Agent):
 
     def episode_aggregation_func(self) -> None:
         pass
+
