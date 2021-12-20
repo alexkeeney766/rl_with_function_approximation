@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, Optional
+from typing import Tuple, Union, Optional
 
 import numpy as np
 import torch
@@ -17,23 +17,8 @@ class Agent:
         epsilon_decay: float = 0.998
     ) -> None:
         """
-        Initialize a SARSA on policy reinforcement learning agent. 
         This class expects to use some form of generalized q-function
         approximation e.g. linear function, or neural network.
-
-        Algorithm:
-        Loop for each episode:
-            Init State S
-            Choose Action A based on S, using current policy w/ exploration
-
-            Loop for each step in episode:
-                Take Action A, observe reward R, next state S'
-                Choose Action A' based on S' using current policy w/ exploration
-                Calculate target to be: R + gamma * Q(S', A')
-                
-                Update Q Function based on difference between target and current Q(S,A)
-                S, A <- S', A'
-
         """
 
         # Setting instance Vars

@@ -1,52 +1,28 @@
-from typing import List, Tuple, Union, Optional
-
 import numpy as np
-import torch
 
-from q_func_approx import QualityFuncApprox
 from .agent import Agent
 
 
 class SarsaAgent(Agent):
-    def __init__(
-        self,
-        q_func_approx: QualityFuncApprox,
-        num_states: Union[np.array, int, float, None] = None,
-        num_actions: Optional[int] = None,
-        gamma: float = 0.95,
-        epsilon: float = 1.0,
-        epsilon_decay: float = 0.998,
-    ) -> None:
-        """
-        Initialize a SARSA on policy reinforcement learning agent. 
-        This class expects to use some form of generalized q-function
-        approximation e.g. linear function, or neural network.
+    """
+    This class expects to use some form of generalized q-function
+    approximation e.g. linear function, or neural network.
 
-        Algorithm:
-        Loop for each episode:
-            Init State S
-            Choose Action A based on S, using current policy w/ exploration
+    Algorithm:
+    Loop for each episode:
+        Init State S
+        Choose Action A based on S, using current policy w/ exploration
 
-            Loop for each step in episode:
-                Take Action A, observe reward R, next state S'
-                Choose Action A' based on S' using current policy w/ exploration
-                Calculate target to be: R + gamma * Q(S', A')
-                
-                Update Q Function based on difference between target and current Q(S,A)
-                S, A <- S', A'
+        Loop for each step in episode:
+            Take Action A, observe reward R, next state S'
+            Choose Action A' based on S' using current policy w/ exploration
+            Calculate target to be: R + gamma * Q(S', A')
+            
+            Update Q Function based on difference between target and current Q(S,A)
+            S, A <- S', A'
 
-        """
-
-        # Setting instance Vars
-        self.q_func_approx = q_func_approx
-        self.num_states = num_states
-
-        self.num_actions = num_actions
-        self.epsilon: float = epsilon
-        self.epsilon_decay: float = epsilon_decay
-        self.gamma: float = gamma
-        self.eps_min: float = 0.1
-
+    """
+    
     def init_training_episode(self, state: np.array) -> None:
         # Get Initial Action
         self.action, self.q = self.choose_action(state)
@@ -78,9 +54,9 @@ class SarsaAgent(Agent):
         q-value of the observed state-action pair updated.
         """
         # Calculate target to be: R + gamma * Q(S', A')
-        updated_val = reward + self.gamma * q_prime.detach().clone()[self.action] 
+        updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
 
-        # We only want to update one Q value 
+        # We only want to update one Q value
         target = self.copy_and_update(self.q, self.action, updated_val)
 
         # Run backprop
