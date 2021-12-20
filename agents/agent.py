@@ -7,6 +7,10 @@ from q_func_approx import QualityFuncApprox
 
 
 class Agent:
+    """
+    This class expects to use some form of generalized q-function
+    approximation e.g. linear function, or neural network.
+    """
     def __init__(
         self,
         q_func_approx: QualityFuncApprox,
@@ -16,10 +20,6 @@ class Agent:
         epsilon: float = 1.0,
         epsilon_decay: float = 0.998
     ) -> None:
-        """
-        This class expects to use some form of generalized q-function
-        approximation e.g. linear function, or neural network.
-        """
 
         # Setting instance Vars
         self.q_func_approx = q_func_approx
@@ -83,18 +83,37 @@ class Agent:
         self.epsilon = np.max([self.epsilon * self.epsilon_decay, self.eps_min])
 
     def init_training_episode(self, state: np.array) -> None:
+        '''
+        This is run prior to each training episode
+        '''
         raise NotImplementedError
 
     def init_training_step(self, state: np.array) -> None:
+        '''
+        This is run at the beggining of each training step
+        '''
         raise NotImplementedError
 
     def train_step(self, s_prime: np.array, reward: int) -> None:
+        '''
+        This is run after the action has been taken and s_prime, reward
+        have been observed.
+        '''
         raise NotImplementedError
 
     def update(
         self, q: torch.Tensor, action: int, reward: float, q_prime: float
     ) -> None:
+        '''
+        Internal function that should be called in train_step(),
+        Not always neccessary
+        '''
         raise NotImplementedError
 
     def episode_aggregation_func(self) -> None:
+        '''
+        This is run after each training episode.
+        Ex: experience replay should be implemented here.
+        Not always neccessary
+        '''
         raise NotImplementedError

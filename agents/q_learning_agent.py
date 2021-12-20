@@ -77,8 +77,10 @@ class QLearningAgentExperienceReplay(Agent):
             Choose action A' based on S', using current greedy policy
             Calculate target to be: R + gamma * Q(S', A')
 
-            Update Q Function based on difference between target and current Q(S,A)
+            Store tuple of S, A, R, S' in memory
             S <- S'
+        
+        Sample from Memory and update based on target, Q(S,A) pairs.
     """
 
     def __init__(
