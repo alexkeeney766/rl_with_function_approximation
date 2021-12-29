@@ -15,7 +15,7 @@ class QualityFuncApprox(torch.nn.Module):
     ):
         """
         Initialize a neural network that approximates a Q-function
-        of a reinforcement learning agent.
+        of a reinforcement learning agent. 
         """
         super(QualityFuncApprox, self).__init__()
         self.model = self.make_model(state_dim=state_dim, num_actions=num_actions)
@@ -61,7 +61,8 @@ class QFuncLargeTwoLayer(QualityFuncApprox):
     ):
         """
         Initialize a neural network that approximates a Q-function
-        of a reinforcement learning agent.
+        of a reinforcement learning agent. Two Layers of sizes:
+        128, num_actions
         """
         self.num_actions = num_actions
         self.state_dim = state_dim
@@ -100,7 +101,8 @@ class QFuncSmallThreelayer(QualityFuncApprox):
     ):
         """
         Initialize a neural network that approximates a Q-function
-        of a reinforcement learning agent.
+        of a reinforcement learning agent. Three Layers of sizes:
+        12, 12, num_actions
         """
         self.num_actions = num_actions
         self.state_dim = state_dim
@@ -140,7 +142,8 @@ class QFuncMedThreelayer(QualityFuncApprox):
     ):
         """
         Initialize a neural network that approximates a Q-function
-        of a reinforcement learning agent.
+        of a reinforcement learning agent. 3 layers of sizes: 
+        24, 48, num_actions
         """
         self.num_actions = num_actions
         self.state_dim = state_dim
@@ -184,7 +187,8 @@ class QFuncFree(torch.nn.Module):
     ):
         """
         Initialize a neural network that approximates a Q-function
-        of a reinforcement learning agent.
+        of a reinforcement learning agent. Similar to the base class
+        'QualityFuncApprox' however this is possibly easier to work with.
         """
         super(QFuncFree, self).__init__()
 
