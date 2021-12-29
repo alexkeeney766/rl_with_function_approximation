@@ -3,7 +3,7 @@ from typing import Tuple, Union, Optional
 import numpy as np
 import torch
 
-from q_func_approx import QualityFuncApprox
+from gym_runner.q_func_approx import QualityFuncApprox
 
 
 class Agent:
@@ -11,27 +11,27 @@ class Agent:
     This class expects to use some form of generalized q-function
     approximation e.g. linear function, or neural network.
     """
+
     def __init__(
         self,
         q_func_approx: QualityFuncApprox,
-        num_states: Union[np.array, int, float, None] = None,
+        state_dim: Union[np.array, int, float, None] = None,
         num_actions: Optional[int] = None,
         gamma: float = 0.95,
         epsilon: float = 1.0,
-        epsilon_decay: float = 0.998
+        epsilon_decay: float = 0.998,
     ) -> None:
 
         # Setting instance Vars
         self.q_func_approx = q_func_approx
-        self.num_states = num_states
+        self.state_dim = state_dim
 
         self.num_actions = num_actions
         self.epsilon: float = epsilon
         self.epsilon_decay: float = epsilon_decay
         self.gamma: float = gamma
-        self.eps_min: float = 0.1
+        self.eps_min: float = 0.01
 
-    
     def choose_action(self, state: np.array) -> Tuple[int, torch.Tensor]:
         """
         Finds the maximum q-value over actions at a given state.
@@ -83,37 +83,38 @@ class Agent:
         self.epsilon = np.max([self.epsilon * self.epsilon_decay, self.eps_min])
 
     def init_training_episode(self, state: np.array) -> None:
-        '''
+        """
         This is run prior to each training episode
-        '''
+        """
         raise NotImplementedError
 
-    def init_training_step(self, state: np.array) -> None:
-        '''
+    def init_training_step(self) -> None:
+        """
         This is run at the beggining of each training step
-        '''
+        """
         raise NotImplementedError
 
-    def train_step(self, s_prime: np.array, reward: int) -> None:
-        '''
+    def train_step(self, s_prime: np.array, reward: int, terminal: bool) -> None:
+        """
         This is run after the action has been taken and s_prime, reward
         have been observed.
-        '''
+        """
         raise NotImplementedError
 
-    def update(
-        self, q: torch.Tensor, action: int, reward: float, q_prime: float
-    ) -> None:
-        '''
+    def update(self, reward: float, q_prime: float, terminal: bool) -> None:
+        """
         Internal function that should be called in train_step(),
         Not always neccessary
-        '''
+        """
         raise NotImplementedError
 
     def episode_aggregation_func(self) -> None:
-        '''
+        """
         This is run after each training episode.
         Ex: experience replay should be implemented here.
         Not always neccessary
-        '''
+        """
         raise NotImplementedError
+
+    def preprocess_state(self, s) -> torch.Tensor:
+        return torch.reshape(s, (1, self.state_dim))

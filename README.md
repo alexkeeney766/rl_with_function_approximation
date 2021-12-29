@@ -11,3 +11,4 @@ I'm exploring the stability of several agents using Q-Value function approximati
 ## Current Function Approximations
 
 * 2 Layer NN with Tanh and relu activations respectively
+* 3 Layer NN with Relu activations

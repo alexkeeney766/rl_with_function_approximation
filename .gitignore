@@ -1,1 +1,5 @@
 __pycache__
+*.csv
+test_cases/.ipynb_checkpoints/*
+gym_runner.egg-info/*
+.ipynb_checkpoints/*

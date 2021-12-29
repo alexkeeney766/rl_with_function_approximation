@@ -27,16 +27,16 @@ class SarsaAgent(Agent):
         # Get Initial Action
         self.action, self.q = self.choose_action(state)
 
-    def init_training_step(self, state: np.array) -> None:
+    def init_training_step(self) -> None:
         pass
 
-    def train_step(self, s_prime: np.array, reward: int) -> None:
+    def train_step(self, s_prime: np.array, reward: int, terminal:bool) -> None:
 
         # Choose Action A' based on S' using current policy w/ exploration
         a_prime, q_prime = self.epsilon_greedy(s_prime)
 
         # Update Weights
-        self.update(reward, q_prime)
+        self.update(reward, q_prime, terminal)
 
         # Update current state and action
         state = s_prime
@@ -45,7 +45,7 @@ class SarsaAgent(Agent):
         # Need to recompute avoid gradient issues after updateing
         self.q = self.get_quality(state)
 
-    def update(self, reward: float, q_prime: float) -> None:
+    def update(self, reward: float, q_prime: float, terminal:bool) -> None:
         """
         Update the weights of the Q-Function Approximation.
         Since the network is designed to return all state-action
@@ -54,7 +54,10 @@ class SarsaAgent(Agent):
         q-value of the observed state-action pair updated.
         """
         # Calculate target to be: R + gamma * Q(S', A')
-        updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
+        if terminal:
+            updated_val = reward
+        else:
+            updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
 
         # We only want to update one Q value
         target = self.copy_and_update(self.q, self.action, updated_val)

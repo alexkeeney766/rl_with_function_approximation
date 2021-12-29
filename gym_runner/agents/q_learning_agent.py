@@ -1,7 +1,8 @@
 from typing import Optional, Union
 from collections import deque
 import numpy as np
-from q_func_approx import QualityFuncApprox
+import torch
+from gym_runner.q_func_approx import QualityFuncApprox
 import random
 from .agent import Agent
 
@@ -26,22 +27,22 @@ class QLearningAgent(Agent):
     """
 
     def init_training_episode(self, state: np.array) -> None:
-        pass
+        self.state = state
 
-    def init_training_step(self, state: np.array) -> None:
-        self.action, self.q = self.epsilon_greedy(state)
+    def init_training_step(self) -> None:
+        self.action, self.q = self.epsilon_greedy(self.state)
 
-    def train_step(self, s_prime: np.array, reward: int) -> None:
+    def train_step(self, s_prime: np.array, reward: int, terminal: bool) -> None:
         # Choose action A' based on S', using current greedy policy
         _, q_prime = self.choose_action(s_prime)
 
         # Update Weights
-        self.update(reward, q_prime)
+        self.update(reward, q_prime, terminal)
 
         # Update current state
         self.state = s_prime
 
-    def update(self, reward: float, q_prime: float) -> None:
+    def update(self, reward: float, q_prime: float, terminal: bool) -> None:
         """
         Update the weights of the Q-Function Approximation.
         Since the network is designed to return all state-action
@@ -50,7 +51,10 @@ class QLearningAgent(Agent):
         q-value of the observed state-action pair updated.
         """
         # Calculate target to be: R + gamma * Q(S', A')
-        updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
+        if terminal:
+            updated_val = reward
+        else:
+            updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
 
         # We only want to update one Q value
         target = self.copy_and_update(self.q, self.action, updated_val)
@@ -86,7 +90,7 @@ class QLearningAgentExperienceReplay(Agent):
     def __init__(
         self,
         q_func_approx: QualityFuncApprox,
-        num_states: Union[np.array, int, float, None] = None,
+        state_dim: Union[np.array, int, float, None] = None,
         num_actions: Optional[int] = None,
         gamma: float = 0.95,
         epsilon: float = 1.0,
@@ -96,12 +100,12 @@ class QLearningAgentExperienceReplay(Agent):
     ) -> None:
 
         super().__init__(
-            q_func_approx = q_func_approx, 
-            num_states = num_states,
-            num_actions= num_actions,
-            gamma= gamma,
-            epsilon= epsilon,
-            epsilon_decay= epsilon_decay,
+            q_func_approx=q_func_approx,
+            state_dim=state_dim,
+            num_actions=num_actions,
+            gamma=gamma,
+            epsilon=epsilon,
+            epsilon_decay=epsilon_decay,
         )
 
         self.memory = deque(maxlen=max_episode_len)
@@ -110,33 +114,43 @@ class QLearningAgentExperienceReplay(Agent):
     def init_training_episode(self, state: np.array) -> None:
         self.state = state
 
-    def init_training_step(self, state: np.array) -> None:
-        self.action, self.q = self.epsilon_greedy(state)
-    
-    def train_step(self, s_prime: np.array, reward: int) -> None:
+    def init_training_step(self) -> None:
+        self.action, self.q = self.epsilon_greedy(self.state)
+
+    def train_step(self, s_prime: np.array, reward: int, terminal: bool) -> None:
         # Choose action A' based on S', using current greedy policy
         _, q_prime = self.choose_action(s_prime)
 
         # Update Weights
-        self.update(reward, q_prime)
+        self.update(reward, q_prime, terminal)
 
         # Update current state
-        self.state = s_prime  
-    
-    def update(self, reward: float, q_prime: float) -> None:
+        self.state = s_prime
+
+    def update(self, reward: float, q_prime: float, terminal: bool) -> None:
         # Calculate target to be: R + gamma * Q(S', A')
-        updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
+        if terminal:
+            updated_val = reward
+        else:
+            updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
 
         # We only want to update one Q value
-        target = self.copy_and_update(self.q, self.action, updated_val)
+        # target = self.copy_and_update(self.q, self.action, updated_val)
 
         # Append step data to memory
-        self.memory.append((self.state, self.action, target))
+        self.memory.append((self.state, self.action, updated_val))
 
     def episode_aggregation_func(self) -> None:
         # Run experience replay on a sample of the episode's steps
         sample_exp = random.sample(self.memory, min(len(self.memory), self.batch_size))
-        for state, action, target in sample_exp:
-            q = self.get_quality(state)[action]
-            self.q_func_approx.update(q, target)
+        x_batch, y_batch = [], []
 
+        for state, action, updated_val in sample_exp:
+            q = self.get_quality(state)
+            target = self.copy_and_update(q, action, updated_val)
+            x_batch.append(q)
+            y_batch.append(target)
+        
+        self.q_func_approx.update(torch.stack(x_batch) ,torch.stack(y_batch))
+
+    
