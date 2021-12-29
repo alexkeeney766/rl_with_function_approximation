@@ -25,4 +25,12 @@ setuptools.setup(
     package_dir={"": "."},
     packages=setuptools.find_packages(),
     python_requires=">=3.6",
+    install_requires=[
+        "torch>=1.10.0",
+        "numpy>=1.19.2",
+        "pandas>=1.2.0",
+        "gym>=0.21.0",
+        "tqdm>=4.62.3",
+        "scikit-learn>=1.0.1",
+    ],
 )

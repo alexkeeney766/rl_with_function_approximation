@@ -1,26 +1,26 @@
-from typing import Optional, Union
+import random
 from collections import deque
+from typing import Optional, Union
+
 import numpy as np
 import torch
 from gym_runner.q_func_approx import QualityFuncApprox
-import random
+
 from .agent import Agent
 
 
 class QLearningAgent(Agent):
     """
-    This class expects to use some form of generalized q-function
-    approximation e.g. linear function, or neural network.
-
     Algorithm:
+    ----------
     Loop for each episode:
         Init State S
 
         Loop for each step in episode:
             Choose Action A based on S, using current policy w/ exploration
-            Take Action A, observe reward R, next state S'
+            Take Action A, observe reward R and next state S'
             Choose action A' based on S', using current greedy policy
-            Calculate target to be: R + gamma * Q(S', A')
+            target <- R + gamma * Q(S', A')
 
             Update Q Function based on difference between target and current Q(S,A)
             S <- S'
@@ -68,10 +68,8 @@ class QLearningAgent(Agent):
 
 class QLearningAgentExperienceReplay(Agent):
     """
-    This class expects to use some form of generalized q-function
-    approximation e.g. linear function, or neural network.
-
     Algorithm:
+    ----------
     Loop for each episode:
         Init State S
 
@@ -79,9 +77,9 @@ class QLearningAgentExperienceReplay(Agent):
             Choose Action A based on S, using current policy w/ exploration
             Take Action A, observe reward R, next state S'
             Choose action A' based on S', using current greedy policy
-            Calculate target to be: R + gamma * Q(S', A')
+            target <- R + gamma * Q(S', A')
 
-            Store tuple of S, A, R, S' in memory
+            Store tuple of S, A, target in memory
             S <- S'
         
         Sample from Memory and update based on target, Q(S,A) pairs.
@@ -130,15 +128,12 @@ class QLearningAgentExperienceReplay(Agent):
     def update(self, reward: float, q_prime: float, terminal: bool) -> None:
         # Calculate target to be: R + gamma * Q(S', A')
         if terminal:
-            updated_val = reward
+            target = reward
         else:
-            updated_val = reward + self.gamma * q_prime.detach().clone()[self.action]
-
-        # We only want to update one Q value
-        # target = self.copy_and_update(self.q, self.action, updated_val)
+            target = reward + self.gamma * q_prime.detach().clone()[self.action]
 
         # Append step data to memory
-        self.memory.append((self.state, self.action, updated_val))
+        self.memory.append((self.state, self.action, target))
 
     def episode_aggregation_func(self) -> None:
         # Run experience replay on a sample of the episode's steps

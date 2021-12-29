@@ -5,18 +5,16 @@ from .agent import Agent
 
 class SarsaAgent(Agent):
     """
-    This class expects to use some form of generalized q-function
-    approximation e.g. linear function, or neural network.
-
     Algorithm:
+    ----------
     Loop for each episode:
         Init State S
         Choose Action A based on S, using current policy w/ exploration
 
         Loop for each step in episode:
-            Take Action A, observe reward R, next state S'
+            Take Action A, observe reward R and next state S'
             Choose Action A' based on S' using current policy w/ exploration
-            Calculate target to be: R + gamma * Q(S', A')
+            target <- R + gamma * Q(S', A')
             
             Update Q Function based on difference between target and current Q(S,A)
             S, A <- S', A'

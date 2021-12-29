@@ -140,9 +140,6 @@ class GridSearch:
         print(f"Using {num_procs} processes.")
         if num_procs > 1:
             with Pool(num_procs) as pool:
-                # rewards: List[np.array] = pool.starmap(
-                #     self.k_repeats, self.results.iterrows()
-                # )
                 rewards: List[Tuple[int, np.array]] = []
                 for reward in tqdm(
                     pool.istarmap(

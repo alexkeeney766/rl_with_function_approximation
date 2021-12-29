@@ -16,7 +16,7 @@ This repository explores the stability of several agents using Q-Value function 
 
 There is also a base class for making arbitrary Q-Function approximation objects.
 
-After finding optimal hyper parameters, as measured by average testing score over 5 independently trained agents, the Q-Learning with Experience Replay agent was deemed best. the chart below shows training and testing accumulated rewards over one run.
+After finding optimal hyper parameters for the Cart Pole environment, as measured by average testing score over 5 independently trained agents, the Q-Learning with Experience Replay agent was deemed best. the chart below shows training and testing accumulated rewards over one run.
 
 ![alt text](Q_exp_replay_results.png "Chart")
 

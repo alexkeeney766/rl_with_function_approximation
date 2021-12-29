@@ -8,8 +8,10 @@ from gym_runner.q_func_approx import QualityFuncApprox
 
 class Agent:
     """
-    This class expects to use some form of generalized q-function
-    approximation e.g. linear function, or neural network.
+    General class for a reinforcement learning agent to be used
+    in an OpenAI gym environment. This class expects to use some 
+    form of generalized q-function approximation e.g. linear function, 
+    or neural network.
     """
 
     def __init__(
@@ -84,19 +86,22 @@ class Agent:
 
     def init_training_episode(self, state: np.array) -> None:
         """
-        This is run prior to each training episode
+        This is run prior to each training episode: agent subclasses
+        should independently implement this.
         """
         raise NotImplementedError
 
     def init_training_step(self) -> None:
         """
-        This is run at the beggining of each training step
+        This is run at the beggining of each training step: agent subclasses
+        should independently implement this.
         """
         raise NotImplementedError
 
     def train_step(self, s_prime: np.array, reward: int, terminal: bool) -> None:
         """
-        This is run after the action has been taken and s_prime, reward
+        This is run after the action has been taken and s_prime, reward: agent subclasses
+        should independently implement this.
         have been observed.
         """
         raise NotImplementedError
@@ -115,6 +120,3 @@ class Agent:
         Not always neccessary
         """
         raise NotImplementedError
-
-    def preprocess_state(self, s) -> torch.Tensor:
-        return torch.reshape(s, (1, self.state_dim))
